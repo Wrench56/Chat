@@ -65,10 +65,16 @@ class GUI():
 		except curses.error:
 			self.active_users_win = self.stdscr.subwin(round(y), round((x/12)*2), 0, x2-1)
 		self.active_users_win.box()
+
+		'''
+		Chats and Groups
+		'''
 		self.chats_win_chats = self.stdscr.subwin(height_chats, round((x/12)*3), 0, 0) #rows, columns, y, x 
 		self.chats_win_chats.box()
 		self.chats_win_chats = self.stdscr.subwin(groups_height, round((x/12)*3), height_chats, 0) #rows, columns, y, x 
 		self.chats_win_chats.box()
+		self.stdscr.addstr(0, 2, 'Chats')
+		self.stdscr.addstr(height_chats, 2, 'Groups')
 
 
 		if init == True:
@@ -82,6 +88,10 @@ class GUI():
 		self.tb = curses_util.Textbox(self.stdscr, round(y)-2, x1+1, text=textbox_text)
 		self.tb.rewrite(textbox_text)
 
+
+		'''
+		Status bar
+		'''
 		self.clock.redraw(self.stdscr, round((x/12)*3 + 2))
 
 		self.stdscr.refresh()
@@ -129,7 +139,7 @@ class GUI():
 					
 				if key != curses.KEY_RESIZE:# and key != curses.KEY_UP and key != curses.KEY_DOWN:
 					if key == curses.KEY_MOUSE:
-						print('1')
+						pass
 					if key != curses.KEY_UP and key != curses.KEY_DOWN and key != curses.KEY_MOUSE:
 						self.tb.key_input(key)
 					#self.stdscr.refresh()
