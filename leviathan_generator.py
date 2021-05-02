@@ -11,12 +11,16 @@ import socket
 import time
 
 
-VERSION = 1.0
+VERSION = 0.1
 
 colorama.init()
 
 print()
 print()
+
+def get_version():
+	r = requests.get('https://raw.githubusercontent.com/Wrench56/Chat/main/VERSION.txt')
+	return r.text
 
 def connection():
 	try:
@@ -81,7 +85,26 @@ print('+' + 38*'-' + '+')
 print()
 time.sleep(0.1)
 print('[+] Checking for new 5pyd3r release...')
+newest = float(get_version())
 
+if VERSION < newest:
+	print('[+] A new release is available!\n    Your version is %s and the newest version is %s' % (VERSION, newest))
+	print('[?] Do you want to update to version %s? Consider \n    that using an older softver might cause bugs \n    or major issues. It can be crucial to update your softver.\n    If you experience any bugs, please update your softver. ' % (newest))
+	while True:
+		inp = input('[y]es or [n]o: ')
+		if inp.lower() == 'y':
+			print('[+] Downloading newest release...')
+			print('[+] Version %s downloaded!' % newest)
+			print()
+			break
+		elif inp.lower() == 'n':
+			print('[+] Continueing without the new update...')
+			print('[!] If you have any problems, try to update your softver!')
+			print()
+			break
+		elif inp.lower() == 'exit':
+			exit()
+		else:
+			print('[!] That\' not a valid command! Please enter y for [y]es or [n] for [n]o')
 
-
-
+print('[+] Starting 5pyd3r...')

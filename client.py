@@ -15,7 +15,7 @@ def debug(msg):
 
     current_time = now.strftime("%H:%M:%S")
 
-    with open('C:\\Exes' + '\\debuglog.txt', 'a', encoding='utf-8') as file:
+    with open(os.getcwd() + '\\debuglog.txt', 'a', encoding='utf-8') as file:
         file.write(current_time + '  --- ' + msg + '\n')
         file.close()
 
@@ -39,26 +39,32 @@ class Client():
         self.msg = None
 
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.setblocking(False)
+        #self.socket.setblocking(False)
         self.connect()
 
 
     def connect(self):
         while self.success != True:
             try:
+                '''
+                TODO : WARNING: I kinda had to use blocking here, because connections from outside are might not
+                be so fast as from inside. (I had to learn it in the hard way:
+                after 3hours of debugging i finally found it 23:13pm)
+                '''
+                self.exit_case = threading.Timer(10.0, self.timeout, args=('Connection not established',))
+                self.exit_case.start()
+                self.socket.setblocking(True)
                 self.socket.connect((self.host, int(self.port)))
-
+                self.exit_case.cancel()
+                self.socket.setblocking(False)
+                break
             except BlockingIOError:
                 pass
-            except OSError:
-                self.success = True
-                debug('Connection OK...')
-                break
         print(str(hashlib.sha256(self.password.encode()).hexdigest()))
 
         while True:
             try:
-                msg = self.socket.recv(4096)
+                msg = self.socket.recv(1024)
                 if msg.startswith(b'$server$@$YOU$:$key$:'): # Can't decode private key obj, so just use byte structures
                     key = msg.replace(b'$server$@$YOU$:$key$:', b'')
                     #print(msg)
@@ -77,7 +83,7 @@ class Client():
                 debug('OK')
                 time.sleep(1.0)
            
-                reply = self.socket.recv(4096)
+                reply = self.socket.recv(1024)
                 reply = str(cypher.decrypt(reply, self.key).decode())
                 if reply == '$server$@$YOU$:$not_valid_username$':
                     print('Error: Not Valid Username or password. Maybe you are already signed in? ')
@@ -95,7 +101,7 @@ class Client():
 
     def verify(self):
         threading.Thread(target=self.send_and_reply, args=(self.username + '@$server$:$verify$',)).start()
-        self.exit_case = threading.Timer(10.0, self.quit)
+        self.exit_case = threading.Timer(10.0, self.timeout, args=('Verifiy timed out',))
         self.exit_case.start()
         while True:
             time.sleep(0.0001)
@@ -111,7 +117,7 @@ class Client():
             print('[!]SEND_AND_REPLY RUNNING')
             time.sleep(0.0001)
             try:
-                response = self.socket.recv(4096)
+                response = self.socket.recv(1024)
                 self.reply = cypher.decrypt(response, self.key).decode()
                 if self.reply != '': #TODO : If not used, it will swallow some of the messages!!!
                     break            #TODO : Do not comment this out!!!
@@ -135,7 +141,7 @@ class Client():
         while True:
             time.sleep(0.0001)
             try:
-                response = self.socket.recv(4096)
+                response = self.socket.recv(1024)
                 self.msg = cypher.decrypt(response, self.key).decode()
                 #print(self.msg)
                 if len(self.msg) == 0:
@@ -148,8 +154,10 @@ class Client():
             except BlockingIOError:
                 pass
                 #print('BlockingIOError')
-    def quit(self):
+    def timeout(self, reason):
+        print('Quitted for reason: %s' % reason)
         exit()
+        
     def debug_(self, msg):
         print('MSG from client:' + msg)
 

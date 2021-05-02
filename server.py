@@ -74,7 +74,8 @@ class Server():
                             self.msg = self.msg.replace(b'$unkn0wn$@$server$:$username:', b'')
                             self.msg = '$unkn0wn$@$server$:$username:' + rsa.decrypt(self.msg, user.private_key).decode()
                     else:
-                        self.msg = cypher.decrypt(self.msg, user.key).decode()
+                        if self.msg != b'':
+                            self.msg = cypher.decrypt(self.msg, user.key).decode()
 
 
                     if len(self.msg) == 0:
