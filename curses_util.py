@@ -10,7 +10,7 @@ def debug(msg):
 
     current_time = now.strftime("%H:%M:%S")
 
-    with open('C:\\Exes\\debuglog.txt', 'a', encoding='utf-8') as file:
+    with open(os.getcwd() + '\\debuglog.txt', 'a', encoding='utf-8') as file:
         file.write(current_time + '  --- ' + str(msg) + '\n')
         file.close()
 
@@ -275,3 +275,85 @@ class Scrollpad():
             if i % 2 == 0 or i == 0:
                 self.add_text(self.content[i], self.content[i+1], persistence=False)
                 self.refresh()
+
+
+class AdvancedScrollpad(Scrollpad):
+    def __init__(self, scr, lines, columns, uy=0, ux=0, dy=25, dx=25):
+        self.item_name = None
+        super().__init__(scr, lines, columns, uy=0, ux=0, dy=25, dx=25)
+
+    def input(self, key):
+        #print(self.pad.getyx()[0])
+        if key == curses.KEY_DOWN and self.pad_pos_y < len(self.content)/2:
+            self.pad_pos_y += 1
+            try:
+                self.name = self.content[self.pad_pos_y*2]
+            except IndexError:
+                self.name = self.content[-2]
+            print(self.name)
+            self.refresh()
+        elif key == curses.KEY_UP and self.pad_pos_y > 0:
+            self.pad_pos_y -= 1
+            self.name = self.content[self.pad_pos_y*2]
+            print(self.name)
+            self.refresh()
+
+
+
+
+class Button():
+    def __init__(self, y, x, height, width, title, stdscr):
+        color_list = [curses.COLOR_WHITE, curses.COLOR_BLUE, curses.COLOR_GREEN, curses.COLOR_CYAN, curses.COLOR_RED, curses.COLOR_MAGENTA, curses.COLOR_YELLOW, curses.COLOR_WHITE]
+        pair = 1
+        for background in range(8):
+            for foreground in range(8):
+                curses.init_pair(pair, color_list[foreground], color_list[background])
+                pair += 1
+        self.y = y
+        self.x = x
+        self.height = height
+        self.width = width
+        self.title = title
+        self.stdscr = stdscr
+        self.draw()
+    def on_click(self, key):
+        _, x, y, _, _ = curses.getmouse()
+        print('self.x: %s, x: %s, self.y: %s, y: %s' % (self.x, x, self.y, y))
+        print(x >= self.x)
+        print(x <= self.width)
+        if x >= self.x and x <= (self.x + self.width):
+            print('OK 1')
+            if y >= self.y and y <= (self.y + self.height):
+                self.highlight()
+
+    def draw(self):
+        y = self.y
+        if self.height > 1:
+            print(self.x)
+            for i in range(self.height):
+                if round(self.height/2) == i:
+                    title_start_x = round(self.width/2)-round(len(self.title)/2)
+                    if len(self.title) + title_start_x > self.width:
+                        title = self.title[:(2*title_start_x)]
+                    self.stdscr.addstr(y, self.x + title_start_x, self.title)
+                else:
+                    self.stdscr.addstr(y, self.x, '#'*self.width)
+                y += 1
+        else:
+            title_start_x = round(self.width/2)-round(len(self.title)/2)
+            if len(self.title) + title_start_x > self.width:
+                title = self.title[:(2*title_start_x)]
+            self.stdscr.addstr(y, title_start_x, self.title)
+
+
+
+
+    def highlight(self):
+        print('highlight')
+        self._delete()
+
+    def _delete(self):
+        for y in range(self.height):
+
+            self.stdscr.addstr(self.y + y, self.x, ' '*self.width)
+

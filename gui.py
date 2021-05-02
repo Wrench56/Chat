@@ -25,6 +25,8 @@ class GUI():
 		self.last_msg = 'Nothing'
 
 		curses.noecho()
+		curses.curs_set(0)
+		#curses.mousemask(1) #do not show cursor on click (turn off for debugging)
 		curses.start_color()
 
 		self.stdscr = stdscr
@@ -34,7 +36,6 @@ class GUI():
 
 		x1 = round((x/12)*3)
 		x2 = x1 + round((x/12)*7)
-
 
 		self.draw_widgets(init = True)
 
@@ -49,6 +50,9 @@ class GUI():
 
 		x1 = round((x/12)*3)
 		x2 = x1 + round((x/12)*7)
+		height_chats = round(y/2)
+		groups_height = y - height_chats
+
 
 		self.status_bar = self.stdscr.subwin(2, round((x/12)*7), 0, x1)
 		self.status_bar.box()
@@ -61,8 +65,10 @@ class GUI():
 		except curses.error:
 			self.active_users_win = self.stdscr.subwin(round(y), round((x/12)*2), 0, x2-1)
 		self.active_users_win.box()
-		self.chats_win = self.stdscr.subwin(round(y), round((x/12)*3), 0, 0) #rows, columns, y, x 
-		self.chats_win.box()
+		self.chats_win_chats = self.stdscr.subwin(height_chats, round((x/12)*3), 0, 0) #rows, columns, y, x 
+		self.chats_win_chats.box()
+		self.chats_win_chats = self.stdscr.subwin(groups_height, round((x/12)*3), height_chats, 0) #rows, columns, y, x 
+		self.chats_win_chats.box()
 
 
 		if init == True:
@@ -122,8 +128,9 @@ class GUI():
 				#print('INPUT')
 					
 				if key != curses.KEY_RESIZE:# and key != curses.KEY_UP and key != curses.KEY_DOWN:
-				#self.status_bar.win.refresh()
-					if key != curses.KEY_UP and key != curses.KEY_DOWN:
+					if key == curses.KEY_MOUSE:
+						print('1')
+					if key != curses.KEY_UP and key != curses.KEY_DOWN and key != curses.KEY_MOUSE:
 						self.tb.key_input(key)
 					#self.stdscr.refresh()
 					#self.stdscr.doupdate()
