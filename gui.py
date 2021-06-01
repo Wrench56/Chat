@@ -21,6 +21,7 @@ class GUI():
 
 		threading.Thread(target=self.receive_msg).start()
 
+		self.to = '$user$:G:'
 		self.msg = ''
 		self.last_msg = 'Nothing'
 
@@ -30,12 +31,16 @@ class GUI():
 		curses.start_color()
 
 		self.stdscr = stdscr
+		self.stdscr.erase()
 		#self.stdscr.nodelay(1)
 
 		y, x = self.stdscr.getmaxyx()
 
 		x1 = round((x/12)*3)
 		x2 = x1 + round((x/12)*7)
+
+		self.tab_focus = 'dashboard'
+
 
 		self.draw_widgets(init = True)
 
@@ -71,8 +76,9 @@ class GUI():
 		'''
 		self.chats_win_chats = self.stdscr.subwin(height_chats, round((x/12)*3), 0, 0) #rows, columns, y, x 
 		self.chats_win_chats.box()
-		self.chats_win_chats = self.stdscr.subwin(groups_height, round((x/12)*3), height_chats, 0) #rows, columns, y, x 
-		self.chats_win_chats.box()
+
+		self.chats_win_groups = self.stdscr.subwin(groups_height, round((x/12)*3), height_chats, 0) #rows, columns, y, x 
+		self.chats_win_groups.box()
 		self.stdscr.addstr(0, 2, 'Chats')
 		self.stdscr.addstr(height_chats, 2, 'Groups')
 
@@ -81,7 +87,10 @@ class GUI():
 			self.clock = curses_util.Clock(self.stdscr, 0, round((x/12)*3 + 2))
 			self.tb = curses_util.Textbox(self.stdscr, round(y)-2, x1+1)
 			self.dashboard = curses_util.Scrollpad(self.stdscr, 1024*1024, round((x/12)*7)-2, uy=3, ux=(x1+1), dy=round(y)-6, dx=(x1+1)+round((x/12)*7)-3)
+			self.chats_dashboard = curses_util.AdvancedScrollpad(self.stdscr, 1024*1024, round((x/12)*3)-3, uy=2, ux=2, dy=height_chats-2, dx=round((x/12)*3)-3)
+			#self.chats_dashboard.load_file(os.getcwd() + '\\chats.txt')
 		self.dashboard.resize(lines=(1024*1024), columns=(round((x/12)*7)-2), uy=3, ux=(x1+1), dy=round(y)-6, dx=(x1+1)+round((x/12)*7)-3)
+		self.chats_dashboard.resize(lines=(1024*1024), columns=(round((x/12)*3)-3), uy=2, ux=2, dy=height_chats-2, dx=round((x/12)*3)-3)
 		textbox_text = self.tb.text
 		#print(textbox_text)
 		self.tb = None
@@ -96,6 +105,7 @@ class GUI():
 
 		self.stdscr.refresh()
 	def receive_msg(self):
+
 		while True:
 			time.sleep(0.0001)
 			self.msg = self.client_obj.msg
@@ -131,16 +141,35 @@ class GUI():
 
 	def main(self):
 		try:
+			self.draw_widgets()
 			while True:
 				time.sleep(0.0001)
 				key = self.stdscr.getch()
-				self.dashboard.input(key)
+				print(key)
+				if self.tab_focus == 'dashboard':
+					self.dashboard.input(key)
+				elif self.tab_focus == 'chats':
+					self.chats_dashboard.input(key)
+				elif self.tab_focus == 'groups':
+					pass
+				else:
+					self.tab_focus = 'dashboard'
+
 				#print('INPUT')
-					
+				
 				if key != curses.KEY_RESIZE:# and key != curses.KEY_UP and key != curses.KEY_DOWN:
+					if key == 351:
+						if self.tab_focus == 'dashboard':
+							self.tab_focus = 'chats'
+						elif self.tab_focus == 'chats':
+							self.tab_focus = 'groups'
+						elif self.tab_focus == 'groups':
+							self.tab_focus = 'dashboard'
+						else:
+							self.tab_focus = 'dashboard'
 					if key == curses.KEY_MOUSE:
 						pass
-					if key != curses.KEY_UP and key != curses.KEY_DOWN and key != curses.KEY_MOUSE:
+					if key != curses.KEY_UP and key != curses.KEY_DOWN and key != curses.KEY_MOUSE and key != 351:
 						self.tb.key_input(key)
 					#self.stdscr.refresh()
 					#self.stdscr.doupdate()
@@ -152,6 +181,7 @@ class GUI():
 						#self.draw_widgets()
 						pass
 					elif key == curses.KEY_ENTER or key == 10 or key == 13:
+						self.client_obj.to = self.to
 						self.client_obj.send(self.tb.text)
 						self.dashboard.add_text('$YOU$' + ': ', 6)
 						self.dashboard.add_text(str(self.tb.text), 3)

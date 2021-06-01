@@ -140,7 +140,7 @@ class Server():
             print('Found receiver!')
             user_msg = sender_receiver[1].replace('$user$:', '').split(':', 1)
             user = user_msg[0]
-            msg = user_msg[1]
+            msg = user_msg[1] #TODO Error if no msg
             if user in self.users:
                 print('Forwarding message...')
                 sender = sender_receiver[0]

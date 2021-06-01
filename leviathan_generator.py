@@ -1,5 +1,6 @@
 #username_generator
 
+import git
 import colorama
 import os
 from termcolor import colored, cprint
@@ -8,15 +9,40 @@ import platform
 from datetime import datetime
 import requests
 import socket
-import time
+import time 
+import shutil
+from subprocess import call
+
+VERSION = 0.9
 
 
-VERSION = 0.1
+DIR_DOWNLOAD = 'C:\\Users\\dmark\\Onedrive\\Documents\\'
+DIR_REMOVE = DIR_DOWNLOAD + 'Chat\\'
+
 
 colorama.init()
 
 print()
 print()
+
+def onerror(func, path, exc_info):
+    """
+    Error handler for ``shutil.rmtree``.
+
+    If the error is due to an access error (read only file)
+    it attempts to add write permission and then retries.
+
+    If the error is for another reason it re-raises the error.
+
+    Usage : ``shutil.rmtree(path, onerror=onerror)``
+    """
+    import stat
+    if not os.access(path, os.W_OK):
+        # Is the error an access error ?
+        os.chmod(path, stat.S_IWUSR)
+        func(path)
+    else:
+        raise
 
 def get_version():
 	r = requests.get('https://raw.githubusercontent.com/Wrench56/Chat/main/VERSION.txt')
@@ -93,9 +119,15 @@ if VERSION < newest:
 	while True:
 		inp = input('[y]es or [n]o: ')
 		if inp.lower() == 'y':
+			print('[+] Deleting previous version (%s)...' % VERSION)
+			
+			shutil.rmtree(DIR_REMOVE, onerror=onerror)
+			print('[+] Successfully deleted version %s!' % VERSION)
 			print('[+] Downloading newest release...')
+			git.Git(DIR_DOWNLOAD).clone('https://github.com/Wrench56/Chat')
 			print('[+] Version %s downloaded!' % newest)
 			print()
+
 			break
 		elif inp.lower() == 'n':
 			print('[+] Continueing without the new update...')
@@ -105,6 +137,9 @@ if VERSION < newest:
 		elif inp.lower() == 'exit':
 			exit()
 		else:
-			print('[!] That\' not a valid command! Please enter y for [y]es or [n] for [n]o')
-
+			print('[!] That\' not a valid command! Please enter y for [y]es or n for [n]o')
+else:
+	print('[+] Everything is up to date!')
 print('[+] Starting 5pyd3r...')
+
+os.popen('py ' + DIR_REMOVE + ' login.py')

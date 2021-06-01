@@ -33,6 +33,7 @@ class Client():
         self.port = port
         self.username = username
         self.password = password
+        self.to = None
 
         self.success = False
         self.reply = None
@@ -124,7 +125,7 @@ class Client():
             except BlockingIOError:
                 pass
     def send(self, msg):
-        self.encrypted_send(self.socket, self.username.encode() + b'@' + b'$user$:G:' + msg.encode())
+        self.encrypted_send(self.socket, self.username.encode() + b'@' + self.to.encode() + msg.encode())
         #self.socket.send(self.username.encode() + b'@' + b'$user$:G:' + msg.encode())
     def encrypted_send(self, client, message):
 

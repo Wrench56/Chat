@@ -33,6 +33,7 @@ def draw_curs(stdscr, status):
 def main(stdscr):
 	status = 0
 	stdscr.border(0)
+	curses.noecho()
 
 	y, x = stdscr.getmaxyx()
 	
@@ -93,6 +94,6 @@ def main(stdscr):
 				password_tb.key_input(key)
 
 
-if __name__ == '__main__':
-	start()
-	curses.wrapper(main)
+#if __name__ == '__main__':
+start()
+curses.wrapper(main)
